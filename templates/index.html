@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendations</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center text-primary mb-4">Movie Recommendations</h1>
+        <form id="genre-form" method="POST" class="mt-4 mb-4 p-4 bg-light border rounded shadow-sm">
+            <div class="form-group">
+                <input type="text" id="genre" class="form-control" placeholder="Enter genre (e.g., Action, Comedy)" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Search</button>
+        </form>
+        <div id="error-message" class="alert alert-danger mt-4" style="display:none;"></div>
+        <div id="movie-list" class="row mt-4"></div>
+    </div>
+
+    <script>
+        $('#genre-form').on('submit', function(event) {
+            event.preventDefault();
+            let genre = $('#genre').val().trim();
+            if (!genre) {
+                $('#error-message').text('Please enter a genre.').show();
+                return;
+            }
+
+            $('#error-message').hide();
+            $.post('/search', { genre: genre }, function(data) {
+                if (data.error) {
+                    $('#error-message').text(data.error).show();
+                    $('#movie-list').empty();
+                } else {
+                    $('#movie-list').empty();
+                    data.forEach(movie => {
+                        $('#movie-list').append(`
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <img class="card-img-top" src="${movie.Poster}" alt="${movie.Title}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${movie.Title}</h5>
+                                        <p class="card-text"><strong>Year:</strong> ${movie.Year}</p>
+                                        <p class="card-text"><strong>IMDb Rating:</strong> ${movie.imdbRating}</p>
+                                        <p class="card-text">${movie.Overview}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+            }).fail(function() {
+                $('#error-message').text('An error occurred. Please try again.').show();
+            });
+        });
+    </script>
+</body>
+</html>
